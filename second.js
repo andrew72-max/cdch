@@ -1,20 +1,19 @@
-//calling the function checkspeed
-function checkSpeed(speed) {
-    const speedLimit = 70;
-    const kmPerDemeritPoint = 5;
-//if statement to print ok if speed is less than 70
-    if (speed <= speedLimit) {
-        console.log("Ok");
-    } else {
-        const demeritPoints = Math.floor((speed - speedLimit) / kmPerDemeritPoint);
-        console.log(demeritPoints)
-//prints license suspend if driver gets more than 12 points
 
-        if (demeritPoints >= 12) {
-            console.log("License suspended");
+    //call the function
+    function toCalculateSpeed(speedlevel){
+    let speedlevelLimit =70;
+    let kmDemeritpoint = 5;
+    //if statement to print if the speedlevel is ok
+    if(speedlevelLimit >=70){
+        console.log("ok")
+    }else {
+       
+        const kmdemeritPoints = Math.floor( (speedlevel - speedlevelLimit  ) /kmDemeritpoint)
+        console.log(kmdemeritPoints);
+         //print license suspended if driver gets more than 12 mins
+        if(kmDemeritpoint>=12) {
+            console.log("license suspended");
         }
     }
-}
-
-checkSpeed(180);
-    
+    }
+    toCalculateSpeed(224);
