@@ -1,78 +1,112 @@
-function calculatePayee(grossSalary) {
-    let taxRate;
-    if (grossSalary <= 24000) {
-        taxRate = 0.1; // 10%
-    } else if (grossSalary <= 48000) {
-        taxRate = 0.25; // 25%
-    } else {
-        taxRate = 0.3; // 30%
+// Kenyan Net Salary Calculator
+
+class NetSalaryCalculator {
+    // PAYE (Tax) Calculation
+    calculatePAYE(monthlyGrossSalary) {
+        // 2024 KRA PAYE Rates (Monthly)
+        const taxBrackets = [
+            { min: 0, max: 24000, rate: 0 },
+            { min: 24001, max: 32333, rate: 10 },
+            { min: 32334, max: 40000, rate: 15 },
+            { min: 40001, max: 48000, rate: 20 },
+            { min: 48001, max: 72000, rate: 25 },
+            { min: 72001, max: Infinity, rate: 30 }
+        ];
+
+        let tax = 0;
+        for (let bracket of taxBrackets) {
+            if (monthlyGrossSalary > bracket.min) {
+                const taxableAmount = Math.min(monthlyGrossSalary, bracket.max) - bracket.min;
+                tax += taxableAmount * (bracket.rate / 100);
+            }
+        }
+
+        return Math.round(tax);
     }
-    return grossSalary * taxRate;
-}
 
-function calculateNHIFDeduction(grossSalary) {
-    if (grossSalary <= 5999) {
-        return 150;
-    } else if (grossSalary <= 7999) {
-        return 300;
-    } else if (grossSalary <= 11999) {
-        return 400;
-    } else if (grossSalary <= 14999) {
-        return 500;
-    } else if (grossSalary <= 19999) {
-        return 600;
-    } else if (grossSalary <= 24999) {
-        return 750;
-    } else if (grossSalary <= 29999) {
-        return 850;
-    } else if (grossSalary <= 34999) {
-        return 900;
-    } else if (grossSalary <= 39999) {
-        return 950;
-    } else if (grossSalary <= 44999) {
-        return 1000;
-    } else if (grossSalary <= 49999) {
-        return 1100;
-    } else {
-        return 1200;
+    // NHIF Deduction Calculation
+    calculateNHIF(monthlyGrossSalary) {
+        // 2024 NHIF Contribution Rates
+        const nhifRates = [
+            { min: 0, max: 5999, contribution: 150 },
+            { min: 6000, max: 7999, contribution: 300 },
+            { min: 8000, max: 11999, contribution: 400 },
+            { min: 12000, max: 14999, contribution: 500 },
+            { min: 15000, max: 19999, contribution: 600 },
+            { min: 20000, max: 24999, contribution: 750 },
+            { min: 25000, max: 29999, contribution: 850 },
+            { min: 30000, max: 34999, contribution: 900 },
+            { min: 35000, max: 39999, contribution: 950 },
+            { min: 40000, max: 44999, contribution: 1000 },
+            { min: 45000, max: 49999, contribution: 1100 },
+            { min: 50000, max: 59999, contribution: 1200 },
+            { min: 60000, max: 69999, contribution: 1300 },
+            { min: 70000, max: 79999, contribution: 1400 },
+            { min: 80000, max: 89999, contribution: 1500 },
+            { min: 90000, max: 99999, contribution: 1600 },
+            { min: 100000, max: Infinity, contribution: 1700 }
+        ];
+
+        // Find the correct NHIF contribution
+        const nhifContribution = nhifRates.find(
+            rate => monthlyGrossSalary >= rate.min && monthlyGrossSalary <= rate.max
+        );
+
+        return nhifContribution ? nhifContribution.contribution : 1700;
+    }
+
+    // NSSF Deduction Calculation (2013 rates)
+    calculateNSSF(monthlyBasicSalary) {
+        const tierOne = Math.min(monthlyBasicSalary, 6000);
+        const tierTwo = Math.max(0, Math.min(monthlyBasicSalary - 6000, 6000));
+
+        const tierOneContribution = tierOne * 0.06;
+        const tierTwoContribution = tierTwo * 0.06;
+
+        return Math.round(tierOneContribution + tierTwoContribution);
+    }
+
+    // Calculate Net Salary
+    calculateNetSalary(basicSalary, benefits = 0) {
+        const grossSalary = basicSalary + benefits;
+        
+        const payee = this.calculatePAYE(grossSalary);
+        const nhifDeduction = this.calculateNHIF(grossSalary);
+        const nssfDeduction = this.calculateNSSF(basicSalary);
+
+        const totalDeductions = payee + nhifDeduction + nssfDeduction;
+        const netSalary = grossSalary - totalDeductions;
+
+        return {
+            basicSalary,
+            benefits,
+            grossSalary,
+            payee,
+            nhifDeduction,
+            nssfDeduction,
+            totalDeductions,
+            netSalary
+        };
     }
 }
 
-function calculateNSSFDeduction(grossSalary) {
-    return grossSalary * 0.06; // Assuming 6% deduction
+// Example Usage
+function calculateSalary(basicSalary, benefits = 0) {
+    const calculator = new NetSalaryCalculator();
+    const salaryBreakdown = calculator.calculateNetSalary(basicSalary, benefits);
+    
+    console.log('Salary Breakdown:');
+    console.log(`Basic Salary: KES ${salaryBreakdown.basicSalary}`);
+    console.log(`Benefits: KES ${salaryBreakdown.benefits}`);
+    console.log(`Gross Salary: KES ${salaryBreakdown.grossSalary}`);
+    console.log(`PAYE (Tax): KES ${salaryBreakdown.payee}`);
+    console.log(`NHIF Deduction: KES ${salaryBreakdown.nhifDeduction}`);
+    console.log(`NSSF Deduction: KES ${salaryBreakdown.nssfDeduction}`);
+    console.log(`Total Deductions: KES ${salaryBreakdown.totalDeductions}`);
+    console.log(`Net Salary: KES ${salaryBreakdown.netSalary}`);
+
+    return salaryBreakdown;
 }
 
-function calculateNetSalary(basicSalary, benefits) {
-    const grossSalary = basicSalary + benefits;
-    const payee = calculatePayee(grossSalary);
-    const nhifDeduction = calculateNHIFDeduction(grossSalary);
-    const nssfDeduction = calculateNSSFDeduction(grossSalary);
-    
-    const totalDeductions = payee + nhifDeduction + nssfDeduction;
-    const netSalary = grossSalary - totalDeductions;
-    
-    return { grossSalary, payee, nhifDeduction, nssfDeduction, netSalary };
-}
-
-// User Input and Output
-function main() {
-    const basicSalary = parseFloat(prompt("Enter Basic Salary: "));
-    const benefits = parseFloat(prompt("Enter Benefits: "));
-    
-    if (isNaN(basicSalary) || isNaN(benefits)) {
-        alert("Please enter valid numerical values for salazry and benefits.");
-        return;
-    }
-    
-    const { grossSalary, payee, nhifDeduction, nssfDeduction, netSalary } = calculateNetSalary(basicSalary, benefits);
-    
-    alert(`Results:
-    Gross Salary: Ksh ${grossSalary.toFixed(2)}
-    Payee (Tax): Ksh ${payee.toFixed(2)}
-    NHIF Deduction: Ksh ${nhifDeduction.toFixed(2)}
-    NSSF Deduction: Ksh ${nssfDeduction.toFixed(2)}
-    Net Salary: Ksh ${netSalary.toFixed(2)}`);
-}
-
-// Start the program
-main();
+// Demonstration
+calculateSalary(50000, 10000);
